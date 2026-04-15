@@ -1,0 +1,20 @@
+# Node.js
+node_modules/
+dist/
+.env
+.env.*
+
+# Android / Kotlin
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+
+# Windows
+bin/
+obj/
+
+# OS
+.DS_Store
+Thumbs.db
