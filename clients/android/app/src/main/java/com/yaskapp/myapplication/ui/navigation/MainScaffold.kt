@@ -71,21 +71,13 @@ fun MainScaffold() {
 
                 when {
                     goingToComments -> {
-                        slideInHorizontally(
-                            initialOffsetX = { it },
-                        ) + fadeIn() togetherWith
-                                slideOutHorizontally(
-                                    targetOffsetX = { -it / 4 }
-                                ) + fadeOut()
+                        slideInHorizontally(initialOffsetX = { it }) + fadeIn() togetherWith
+                                slideOutHorizontally(targetOffsetX = { -it / 4 }) + fadeOut()
                     }
 
                     goingBackFromComments -> {
-                        slideInHorizontally(
-                            initialOffsetX = { -it / 4 }
-                        ) + fadeIn() togetherWith
-                                slideOutHorizontally(
-                                    targetOffsetX = { it }
-                                ) + fadeOut()
+                        slideInHorizontally(initialOffsetX = { -it / 4 }) + fadeIn() togetherWith
+                                slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
                     }
 
                     else -> {
@@ -95,8 +87,8 @@ fun MainScaffold() {
             },
             label = "main_navigation_animation"
         ) { screen ->
-            when (screen) {
 
+            when (screen) {
                 AppScreen.HOME -> {
                     FeedScreen(
                         viewModel = feedViewModel,
@@ -105,6 +97,10 @@ fun MainScaffold() {
                             selectedPollId = pollId
                             previousScreen = currentScreen
                             currentScreen = AppScreen.COMMENTS
+                        },
+                        onCreateClick = {
+                            previousScreen = currentScreen
+                            currentScreen = AppScreen.CREATE
                         }
                     )
                 }

@@ -169,7 +169,9 @@ fun ProfileScreen(
                         poll = poll,
                         onVoteClick = {},
                         onLikeClick = {},
-                        onCommentClick = {}
+                        onCommentClick = {},
+                        onEditClick = { _, _ -> },
+                        onDeleteClick = {}
                     )
                 }
             }

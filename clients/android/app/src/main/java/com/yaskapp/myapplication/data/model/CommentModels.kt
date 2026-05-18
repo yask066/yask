@@ -19,6 +19,11 @@ data class CommentDto(
     val content: String,
     @SerialName("created_at")
     val createdAt: String,
-    val author: CommentAuthorDto
-)
+    val author: CommentAuthorDto,
 
+    @SerialName("is_mine")
+    val isMine: Boolean = false,
+
+    @SerialName("can_delete")
+    val canDelete: Boolean = false
+)

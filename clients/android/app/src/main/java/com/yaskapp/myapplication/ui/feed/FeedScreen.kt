@@ -53,14 +53,15 @@ private val BorderGray = Color(0xFFE7E7E7)
 fun FeedScreen(
     viewModel: FeedViewModel,
     modifier: Modifier = Modifier,
-    onCommentClick: (String) -> Unit
+    onCommentClick: (String) -> Unit,
+    onCreateClick: ()-> Unit
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(FeedBackground)
     ) {
-        FeedHeader()
+        FeedHeader(onCreateClick = onCreateClick)
 
         when {
             viewModel.isLoading -> {
@@ -124,6 +125,12 @@ fun FeedScreen(
                             },
                             onCommentClick = { pollId ->
                                 onCommentClick(pollId)
+                            },
+                            onEditClick = { pollId, newQuestion ->
+                                viewModel.updatePoll(pollId, newQuestion)
+                            },
+                            onDeleteClick = { pollId ->
+                                viewModel.deletePoll(pollId)
                             }
                         )
                     }
@@ -134,7 +141,7 @@ fun FeedScreen(
 }
 
 @Composable
-private fun FeedHeader() {
+private fun FeedHeader(onCreateClick: () -> Unit) {
     val searchText by remember { mutableStateOf("") }
 
     Column(
@@ -200,7 +207,7 @@ private fun FeedHeader() {
             Spacer(modifier = Modifier.width(10.dp))
 
             Button(
-                onClick = { },
+                onClick = onCreateClick,
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = YaskRed),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)

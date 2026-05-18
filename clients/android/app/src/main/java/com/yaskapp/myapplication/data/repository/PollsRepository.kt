@@ -85,11 +85,18 @@ class PollsRepository {
     }
 
     suspend fun getComments(pollId: String): List<CommentDto> {
+        val currentUserId = client.auth.currentUserOrNull()?.id
+
         return client.postgrest
             .rpc(
                 function = "get_comments",
                 parameters = buildJsonObject {
                     put("p_poll_id", pollId)
+                    if (currentUserId == null) {
+                        put("p_user_id", JsonNull)
+                    } else {
+                        put("p_user_id", currentUserId)
+                    }
                 }
             )
             .decodeList<CommentDto>()
@@ -144,4 +151,59 @@ class PollsRepository {
             )
             .decodeList<PollDto>()
     }
+
+    suspend fun deletePoll(pollId: String) {
+        val userId = client.auth.currentUserOrNull()?.id
+            ?: error("Не авторизован")
+
+        client.postgrest.rpc(
+            function = "delete_poll",
+            parameters = buildJsonObject {
+                put("p_poll_id", pollId)
+                put("p_user_id", userId)
+            }
+        )
+    }
+
+    suspend fun updatePoll(pollId: String, question: String) {
+        val userId = client.auth.currentUserOrNull()?.id
+            ?: error("Не авторизован")
+
+        client.postgrest.rpc(
+            function = "update_poll",
+            parameters = buildJsonObject {
+                put("p_poll_id", pollId)
+                put("p_user_id", userId)
+                put("p_question", question)
+            }
+        )
+    }
+
+    suspend fun deleteComment(commentId: String) {
+        val userId = client.auth.currentUserOrNull()?.id
+            ?: error("Не авторизован")
+
+        client.postgrest.rpc(
+            function = "delete_comment",
+            parameters = buildJsonObject {
+                put("p_comment_id", commentId)
+                put("p_user_id", userId)
+            }
+        )
+    }
+
+    suspend fun updateComment(commentId: String, text: String) {
+        val userId = client.auth.currentUserOrNull()?.id
+            ?: error("Не авторизован")
+
+        client.postgrest.rpc(
+            function = "update_comment",
+            parameters = buildJsonObject {
+                put("p_comment_id", commentId)
+                put("p_user_id", userId)
+                put("p_content", text)
+            }
+        )
+    }
 }
+

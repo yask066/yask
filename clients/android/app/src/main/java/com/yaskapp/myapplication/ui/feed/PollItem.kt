@@ -2,10 +2,10 @@ package com.yaskapp.myapplication.ui.feed
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,22 +15,29 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.HowToVote
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,8 +57,13 @@ fun PollItem(
     poll: PollDto,
     onVoteClick: (String) -> Unit,
     onLikeClick: (String) -> Unit,
-    onCommentClick: (String) -> Unit
+    onCommentClick: (String) -> Unit,
+    onEditClick: (String, String) -> Unit,
+    onDeleteClick: (String) -> Unit
 ) {
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editedQuestion by remember { mutableStateOf(poll.question) }
+
     val likeTint by animateColorAsState(
         targetValue = if (poll.likedByMe) YaskRed else Color.Gray,
         animationSpec = tween(durationMillis = 250),
@@ -73,6 +85,44 @@ fun PollItem(
         label = "likeScale"
     )
 
+    if (showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = {
+                Text("Редактировать опрос")
+            },
+            text = {
+                OutlinedTextField(
+                    value = editedQuestion,
+                    onValueChange = { editedQuestion = it },
+                    label = { Text("Вопрос") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val newQuestion = editedQuestion.trim()
+                        if (newQuestion.isNotBlank()) {
+                            onEditClick(poll.id, newQuestion)
+                            showEditDialog = false
+                        }
+                    }
+                ) {
+                    Text("Сохранить", color = YaskRed)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showEditDialog = false }
+                ) {
+                    Text("Отмена")
+                }
+            }
+        )
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -84,17 +134,51 @@ fun PollItem(
                 .fillMaxWidth()
                 .padding(18.dp)
         ) {
-            Text(
-                text = poll.author.displayName.ifBlank { poll.author.username },
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.Black
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = poll.author.displayName.ifBlank { poll.author.username },
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.Black
+                    )
 
-            Text(
-                text = "@${poll.author.username}",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
+                    Text(
+                        text = "@${poll.author.username}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+
+                if (poll.isMine) {
+                    Row {
+                        IconButton(
+                            onClick = {
+                                editedQuestion = poll.question
+                                showEditDialog = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Редактировать",
+                                tint = YaskRed
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { onDeleteClick(poll.id) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Удалить",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -117,30 +201,11 @@ fun PollItem(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "${poll.totalVotes} votes",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-
-                Button(
-                    onClick = { },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = YaskRed)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.HowToVote,
-                        contentDescription = "Vote",
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                    Text("Vote")
-                }
-            }
+            Text(
+                text = "${poll.totalVotes} votes",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -161,7 +226,7 @@ fun PollItem(
                             scaleY = likeScale
                         }
                     )
-                    Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = poll.likesCount.toString(),
                         style = MaterialTheme.typography.bodyMedium,
@@ -178,7 +243,7 @@ fun PollItem(
                         contentDescription = "Comments",
                         tint = Color.Gray
                     )
-                    Spacer(modifier = Modifier.padding(horizontal = 4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = poll.commentsCount.toString(),
                         style = MaterialTheme.typography.bodyMedium
@@ -222,7 +287,7 @@ private fun PollOptionItem(
         label = "optionProgressValue"
     )
 
-    val animatedElevationPadding by animateDpAsState(
+    val animatedPadding by animateDpAsState(
         targetValue = if (isSelected) 16.dp else 14.dp,
         animationSpec = tween(durationMillis = 220),
         label = "optionPadding"
@@ -236,7 +301,7 @@ private fun PollOptionItem(
                 shape = RoundedCornerShape(18.dp)
             )
             .clickable { onClick() }
-            .padding(animatedElevationPadding)
+            .padding(animatedPadding)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -285,4 +350,6 @@ private fun PollOptionItem(
         }
     }
 }
+
+
 

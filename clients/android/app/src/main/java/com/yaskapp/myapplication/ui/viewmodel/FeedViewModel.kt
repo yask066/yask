@@ -122,4 +122,26 @@ class FeedViewModel : ViewModel() {
             }
         }
     }
+
+    fun updatePoll(pollId: String, question: String) {
+        viewModelScope.launch {
+            try {
+                repository.updatePoll(pollId, question)
+                loadFeed()
+            } catch (e: Exception) {
+                error = e.message ?: "Update poll failed"
+            }
+        }
+    }
+
+    fun deletePoll(pollId: String) {
+        viewModelScope.launch {
+            try {
+                repository.deletePoll(pollId)
+                polls = polls.filterNot { it.id == pollId }
+            } catch (e: Exception) {
+                error = e.message ?: "Delete poll failed"
+            }
+        }
+    }
 }

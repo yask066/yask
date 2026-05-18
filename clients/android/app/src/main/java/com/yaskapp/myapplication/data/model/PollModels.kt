@@ -27,24 +27,37 @@ data class PollOptionDto(
 data class PollDto(
     val id: String,
     val question: String,
+
     @SerialName("image_url")
     val imageUrl: String? = null,
-    val status: String,
-    val visibility: String,
+
+    val status: String = "active",
+    val visibility: String = "public",
+
     @SerialName("expires_at")
     val expiresAt: String? = null,
+
     @SerialName("created_at")
     val createdAt: String,
+
     val author: AuthorDto,
     val options: List<PollOptionDto>,
+
     @SerialName("total_votes")
     val totalVotes: Int,
+
     @SerialName("likes_count")
     val likesCount: Int,
+
     @SerialName("comments_count")
     val commentsCount: Int,
+
     @SerialName("user_vote")
     val userVote: String? = null,
+
     @SerialName("liked_by_me")
-    val likedByMe: Boolean
+    val likedByMe: Boolean,
+
+    @SerialName("is_mine")
+    val isMine: Boolean = false
 )
